@@ -1,0 +1,7 @@
+click==7.1.2
+colorama==0.4.3
+commonmark==0.9.1
+pprintpp==0.4.0
+Pygments==2.6.1
+rich==1.0.0
+typing-extensions==3.7.4.2
