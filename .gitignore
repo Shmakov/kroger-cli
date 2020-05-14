@@ -1,4 +1,6 @@
 .idea
 venv
+build
 *.pyc
+*.spec
 config.ini
