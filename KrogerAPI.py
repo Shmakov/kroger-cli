@@ -1,7 +1,6 @@
 import asyncio
 import json
 import KrogerCLI
-import time
 from pyppeteer import launch
 
 
@@ -28,10 +27,11 @@ class KrogerAPI:
     async def _get_account_info(self):
         signed_in = await self.sign_in_routine()
         if not signed_in:
+            await self.destroy()
             return None
 
         self.cli.console.print('Loading profile info..')
-        await self.page.goto('https://www.ralphs.com/accountmanagement/api/profile')
+        await self.page.goto('https://www.' + self.cli.config['main']['domain'] + '/accountmanagement/api/profile')
         try:
             plain_text = await self.page.plainText()
             profile = json.loads(plain_text)
@@ -45,6 +45,7 @@ class KrogerAPI:
     async def _clip_coupons(self):
         signed_in = await self.sign_in_routine(redirect_url='/cl/coupons/', contains=['Coupons Clipped'])
         if not signed_in:
+            await self.destroy()
             return None
 
         js = """
@@ -53,17 +54,18 @@ class KrogerAPI:
                 let el = document.getElementsByClassName('kds-Button--favorable')[i];
                 if (el !== undefined) {
                     el.scrollIntoView();
-                    /*el.click();*/
+                    el.click();
                 }
             }
         """
 
         self.cli.console.print('[italic]Applying the coupons, please wait..[/italic]')
         await self.page.keyboard.press('Escape')
-        for i in range(5):
+        for i in range(6):
             await self.page.evaluate(js)
             await self.page.keyboard.press('End')
-            time.sleep(1)
+            await self.page.waitFor(1000)
+        await self.page.waitFor(3000)
         await self.destroy()
         self.cli.console.print('[bold]Coupons successfully clipped to your account! :thumbs_up:[/bold]')
 
@@ -74,7 +76,6 @@ class KrogerAPI:
         await self.page.setViewport({'width': 700, 'height': 0})
 
     async def destroy(self):
-        time.sleep(30)
         await self.browser.close()
 
     async def sign_in_routine(self, redirect_url='/account/update', contains=None):
@@ -82,9 +83,9 @@ class KrogerAPI:
         self.cli.console.print('[italic]Signing in.. (please wait, it might take awhile)[/italic]')
         signed_in = await self.sign_in(redirect_url, contains)
 
-        if not signed_in and not self.browser_options['headless']:
+        if not signed_in and self.browser_options['headless']:
             self.cli.console.print('[red]Sign in failed. Trying one more time..[/red]')
-            self.browser_options['headless'] = True
+            self.browser_options['headless'] = False
             await self.destroy()
             await self.init()
             signed_in = await self.sign_in(redirect_url, contains)
@@ -99,7 +100,7 @@ class KrogerAPI:
         timeout = 20000
         if not self.browser_options['headless']:
             timeout = 60000
-        await self.page.goto('https://www.ralphs.com/signin?redirectUrl=' + redirect_url)
+        await self.page.goto('https://www.' + self.cli.config['main']['domain'] + '/signin?redirectUrl=' + redirect_url)
         await self.page.type('#SignIn-emailInput', self.cli.username)
         await self.page.type('#SignIn-passwordInput', self.cli.password)
         await self.page.keyboard.press('Enter')
