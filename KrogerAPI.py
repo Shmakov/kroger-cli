@@ -1,6 +1,7 @@
 import asyncio
 import json
 import KrogerCLI
+from Memoize import memoized
 from pyppeteer import launch
 
 
@@ -18,6 +19,7 @@ class KrogerAPI:
     def __init__(self, cli: KrogerCLI):
         self.cli = cli
 
+    @memoized
     def get_account_info(self):
         return asyncio.run(self._get_account_info())
 
