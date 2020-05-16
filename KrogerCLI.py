@@ -2,8 +2,10 @@ import configparser
 import os
 import click
 import time
+import KrogerHelper
 from rich.console import Console
 from rich.panel import Panel
+from rich.table import Table
 from rich import box
 from KrogerAPI import *
 
@@ -38,8 +40,6 @@ class KrogerCLI:
         else:
             self.prompt_credentials()
 
-        self.prompt_options()
-
     def prompt_store_selection(self):
         pass
         # TODO:
@@ -56,14 +56,18 @@ class KrogerCLI:
         while True:
             self.console.print('[bold]1[/bold] - Display account info')
             self.console.print('[bold]2[/bold] - Clip all digital coupons')
+            self.console.print('[bold]3[/bold] - Purchases Summary')
             self.console.print('[bold]8[/bold] - Re-Enter username/password')
             self.console.print('[bold]9[/bold] - Exit')
             option = click.prompt('Please select from one of the options', type=int)
+            self.console.rule()
 
             if option == 1:
                 self._option_account_info()
             elif option == 2:
                 self._option_clip_coupons()
+            elif option == 3:
+                self._option_purchases_summary()
             elif option == 8:
                 self.prompt_credentials()
             elif option == 9:
@@ -112,3 +116,23 @@ class KrogerCLI:
 
     def _option_clip_coupons(self):
         self.api.clip_coupons()
+
+    def _option_purchases_summary(self):
+        purchases = self.api.get_purchases_summary()
+        if purchases is None:
+            self.console.print('[bold red]Couldn\'t retrieve the purchases.[/bold red]')
+        else:
+            data = KrogerHelper.process_purchases_summary(purchases)
+            if data is not None:
+                total = data['total']
+                table = Table(title='Purchases Summary (' + data['first_purchase']['transactionTime'][:10] + ' to ' + data['last_purchase']['transactionTime'][:10] + ')')
+                table.add_column('Year')
+                table.add_column('Store Visits')
+                table.add_column('Dollars Spent')
+                table.add_column('Dollars Saved')
+
+                for key, year in data['years'].items():
+                    table.add_row(str(key), str(year['store_visits']), str(f'${year["total"]:.2f}'), str(f'${year["total_savings"]:.2f}'))
+                table.add_row('Total', str(total['store_visits']), str(f'${total["total"]:.2f}'), str(f'${total["total_savings"]:.2f}'))
+
+                self.console.print(table)
