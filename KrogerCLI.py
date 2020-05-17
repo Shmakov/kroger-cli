@@ -101,16 +101,7 @@ class KrogerCLI:
         if info is None:
             self.console.print('[bold red]Couldn\'t retrieve the account info.[/bold red]')
         else:
-            self.config['profile']['first_name'] = info['firstName']
-            self.config['profile']['last_name'] = info['lastName']
-            self.config['profile']['email_address'] = info['emailAddress']
-            self.config['profile']['loyalty_card_number'] = info['loyaltyCardNumber']
-            self.config['profile']['mobile_phone'] = info['mobilePhoneNumber']
-            self.config['profile']['address_line1'] = info['address']['addressLine1']
-            self.config['profile']['address_line2'] = info['address']['addressLine2']
-            self.config['profile']['city'] = info['address']['city']
-            self.config['profile']['state'] = info['address']['stateCode']
-            self.config['profile']['zip'] = info['address']['zip']
+            self.config = KrogerHelper.map_account_info(self.config, info)
             self._write_config_file()
             self.console.print(self.config.items(section='profile'))
 
