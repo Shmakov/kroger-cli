@@ -41,9 +41,22 @@ class KrogerCLI:
             self.prompt_credentials()
 
     def prompt_store_selection(self):
-        pass
-        # TODO:
-        # self.console.print('Please select preferred store')
+        if self.config['main']['username'] != '':
+            return
+
+        for store_key in KrogerHelper.stores:
+            store = KrogerHelper.stores[store_key]
+            self.console.print('[bold]' + str(store_key) + '[/bold] - ' + store['label'] + ' (' + store['domain'] + ')')
+
+        selected_store = click.prompt('Please select preferred store', type=int, default=1)
+        if selected_store in KrogerHelper.stores:
+            self.config['main']['domain'] = KrogerHelper.stores[selected_store]['domain']
+            self._write_config_file()
+        else:
+            self.console.print('[bold red]Incorrect entry, please try again.[/bold red]')
+            self.prompt_store_selection()
+
+        self.console.rule()
 
     def prompt_credentials(self):
         self.console.print('In order to continue, please enter your username (email) and password for kroger.com '

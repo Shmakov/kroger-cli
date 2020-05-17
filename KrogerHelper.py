@@ -1,11 +1,49 @@
-default_dict = {
-    'total': 0.00,
-    'total_savings': 0.00,
-    'store_visits': 0,
+stores = {
+    1: {
+        'label': 'Kroger',
+        'domain': 'kroger.com'
+    },
+    2: {
+        'label': 'Ralphs',
+        'domain': 'ralphs.com'
+    },
+    3: {
+        'label': 'Baker’s',
+        'domain': 'bakersplus.com'
+    },
+    4: {
+        'label': 'City Market',
+        'domain': 'citymarket.com'
+    },
+    5: {
+        'label': 'Dillons',
+        'domain': 'dillons.com'
+    },
+    6: {
+        'label': 'Food 4 Less',
+        'domain': 'food4less.com'
+    },
+    7: {
+        'label': 'Fred Meyer',
+        'domain': 'fredmeyer.com'
+    },
+    8: {
+        'label': 'Fry’s',
+        'domain': 'frysfood.com'
+    },
+    9: {
+        'label': 'Smith’s Food and Drug',
+        'domain': 'smithsfoodanddrug.com'
+    },
 }
 
 
 def process_purchases_summary(purchases):
+    default_dict = {
+        'total': 0.00,
+        'total_savings': 0.00,
+        'store_visits': 0,
+    }
     years = {}
     total = dict(default_dict)
     first_purchase = None
