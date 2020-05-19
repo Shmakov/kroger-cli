@@ -70,6 +70,7 @@ class KrogerCLI:
             self.console.print('[bold]1[/bold] - Display account info')
             self.console.print('[bold]2[/bold] - Clip all digital coupons')
             self.console.print('[bold]3[/bold] - Purchases Summary')
+            self.console.print('[bold]4[/bold] - Points Balance')
             self.console.print('[bold]8[/bold] - Re-Enter username/password')
             self.console.print('[bold]9[/bold] - Exit')
             option = click.prompt('Please select from one of the options', type=int)
@@ -81,6 +82,8 @@ class KrogerCLI:
                 self._option_clip_coupons()
             elif option == 3:
                 self._option_purchases_summary()
+            elif option == 4:
+                self._option_points_balance()
             elif option == 8:
                 self.prompt_credentials()
             elif option == 9:
@@ -117,6 +120,20 @@ class KrogerCLI:
             self.config = KrogerHelper.map_account_info(self.config, info)
             self._write_config_file()
             self.console.print(self.config.items(section='profile'))
+
+    def _option_points_balance(self):
+        balance = self.api.get_points_balance()
+        if balance is None:
+            self.console.print('[bold red]Couldn\'t retrieve the points balance.[/bold red]')
+        elif len(balance) == 1:
+            link = 'https://www.' + self.config['main']['domain'] + '/account/dashboard'
+            self.console.print('[bold red]Couldn\'t retrieve the points balance. Please visit for more info: '
+                               '[link=' + link + ']' + link + '[/link][/bold red]')
+        else:
+            for i in range(1, len(balance)):
+                item = balance[i]
+                self.console.print(item['programDisplayInfo']['loyaltyProgramName'] + ': '
+                                   '[bold]' + item['programBalance']['balanceDescription'] + '[/bold]')
 
     def _option_clip_coupons(self):
         self.api.clip_coupons()

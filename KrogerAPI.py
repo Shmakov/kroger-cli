@@ -24,6 +24,10 @@ class KrogerAPI:
     def get_account_info(self):
         return asyncio.run(self._get_account_info())
 
+    @memoized
+    def get_points_balance(self):
+        return asyncio.run(self._get_points_balance())
+
     def clip_coupons(self):
         return asyncio.run(self._clip_coupons())
 
@@ -48,6 +52,24 @@ class KrogerAPI:
         await self.destroy()
 
         return profile
+
+    async def _get_points_balance(self):
+        signed_in = await self.sign_in_routine()
+        if not signed_in:
+            await self.destroy()
+            return None
+
+        self.cli.console.print('Loading points balance..')
+        await self.page.goto('https://www.' + self.cli.config['main']['domain'] + '/accountmanagement/api/points-summary')
+        try:
+            content = await self.page.content()
+            balance = self._get_json_from_page_content(content)
+            program_balance = balance[0]['programBalance']['balance']
+        except Exception:
+            balance = None
+        await self.destroy()
+
+        return balance
 
     async def _clip_coupons(self):
         signed_in = await self.sign_in_routine(redirect_url='/cl/coupons/', contains=['Coupons Clipped'])
