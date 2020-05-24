@@ -2,6 +2,8 @@ import asyncio
 import json
 import KrogerCLI
 import re
+import datetime
+import KrogerHelper
 from Memoize import memoized
 from pyppeteer import launch
 
@@ -20,6 +22,14 @@ class KrogerAPI:
     def __init__(self, cli: KrogerCLI):
         self.cli = cli
 
+    def complete_survey(self):
+        # Cannot use headless mode here for some reason (sign-in cookie doesn't stick)
+        self.browser_options['headless'] = False
+        res = asyncio.run(self._complete_survey())
+        self.browser_options['headless'] = True
+
+        return res
+
     @memoized
     def get_account_info(self):
         return asyncio.run(self._get_account_info())
@@ -34,6 +44,94 @@ class KrogerAPI:
     @memoized
     def get_purchases_summary(self):
         return asyncio.run(self._get_purchases_summary())
+
+    async def _retrieve_feedback_url(self):
+        self.cli.console.print('Loading `My Purchases` page (to retrieve the Feedback’s Entry ID)')
+
+        # Model overlay pop up (might not exist)
+        # Need to click on it, as it prevents me from clicking on `Order Details` link
+        try:
+            await self.page.waitForSelector('.ModalitySelectorDynamicTooltip--Overlay', {'timeout': 10000})
+            await self.page.click('.ModalitySelectorDynamicTooltip--Overlay')
+        except Exception:
+            pass
+
+        try:
+            # `See Order Details` link
+            await self.page.waitForSelector('.PurchaseCard-top-view-details-button', {'timeout': 10000})
+            await self.page.click('.PurchaseCard-top-view-details-button a')
+            # `View Receipt` link
+            await self.page.waitForSelector('.PurchaseCard-top-view-details-button a', {'timeout': 10000})
+            await self.page.click('.PurchaseCard-top-view-details-button a')
+            content = await self.page.content()
+        except Exception:
+            link = 'https://www.' + self.cli.config['main']['domain'] + '/mypurchases'
+            self.cli.console.print('[bold red]Couldn’t retrieve the latest purchase, please make sure it exists: '
+                                   '[link=' + link + ']' + link + '[/link][/bold red]')
+            raise Exception
+
+        try:
+            match = re.search('Entry ID: (.*?) ', content)
+            entry_id = match[1]
+            match = re.search('Date: (.*?) ', content)
+            entry_date = match[1]
+            match = re.search('Time: (.*?) ', content)
+            entry_time = match[1]
+            self.cli.console.print('Entry ID retrieved: ' + entry_id)
+        except Exception:
+            self.cli.console.print('[bold red]Couldn’t retrieve Entry ID from the receipt, please make sure it exists: '
+                                   '[link=' + self.page.url + ']' + self.page.url + '[/link][/bold red]')
+            raise Exception
+
+        entry = entry_id.split('-')
+        hour = entry_time[0:2]
+        minute = entry_time[3:5]
+        meridian = entry_time[5:7].upper()
+        date = datetime.datetime.strptime(entry_date, '%m/%d/%y')
+        full_date = date.strftime('%m/%d/%Y')
+        month = date.strftime('%m')
+        day = date.strftime('%d')
+        year = date.strftime('%Y')
+
+        url = f'https://www.krogerstoresfeedback.com/Index.aspx?' \
+              f'CN1={entry[0]}&CN2={entry[1]}&CN3={entry[2]}&CN4={entry[3]}&CN5={entry[4]}&CN6={entry[5]}&' \
+              f'Index_VisitDateDatePicker={month}%2f{day}%2f{year}&' \
+              f'InputHour={hour}&InputMeridian={meridian}&InputMinute={minute}'
+
+        return url, full_date
+
+    async def _complete_survey(self):
+        signed_in = await self.sign_in_routine(redirect_url='/mypurchases', contains=['My Purchases'])
+        if not signed_in:
+            await self.destroy()
+            return None
+
+        try:
+            url, survey_date = await self._retrieve_feedback_url()
+        except Exception:
+            await self.destroy()
+            return None
+
+        await self.page.goto(url)
+        await self.page.waitForSelector('#Index_VisitDateDatePicker', {'timeout': 10000})
+        # We need to manually set the date, otherwise the validation fails
+        js = "() => {$('#Index_VisitDateDatePicker').datepicker('setDate', '" + survey_date + "');}"
+        await self.page.evaluate(js)
+        await self.page.click('#NextButton')
+
+        for i in range(35):
+            current_url = self.page.url
+            try:
+                await self.page.waitForSelector('#NextButton', {'timeout': 5000})
+            except Exception:
+                if 'Finish' in current_url:
+                    await self.destroy()
+                    return True
+            await self.page.evaluate(KrogerHelper.get_survey_injection_js(self.cli.config))
+            await self.page.click('#NextButton')
+
+        await self.destroy()
+        return False
 
     async def _get_account_info(self):
         signed_in = await self.sign_in_routine()
