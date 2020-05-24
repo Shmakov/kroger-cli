@@ -71,6 +71,7 @@ class KrogerCLI:
             self.console.print('[bold]2[/bold] - Clip all digital coupons')
             self.console.print('[bold]3[/bold] - Purchases Summary')
             self.console.print('[bold]4[/bold] - Points Balance')
+            self.console.print('[bold]5[/bold] - Complete Kroger’s Survey (to earn 50 points)')
             self.console.print('[bold]8[/bold] - Re-Enter username/password')
             self.console.print('[bold]9[/bold] - Exit')
             option = click.prompt('Please select from one of the options', type=int)
@@ -84,6 +85,8 @@ class KrogerCLI:
                 self._option_purchases_summary()
             elif option == 4:
                 self._option_points_balance()
+            elif option == 5:
+                self._option_survey()
             elif option == 8:
                 self.prompt_credentials()
             elif option == 9:
@@ -111,6 +114,28 @@ class KrogerCLI:
         self.config['main']['username'] = self.username
         self.config['main']['password'] = self.password
         self._write_config_file()
+
+    def _get_details_for_survey(self):
+        if self.config['profile']['first_name'] == '':
+            self.console.print('[bold]We need to retrieve the account info in order to fill out the survey form. '
+                               'Please wait..[/bold]')
+            self._option_account_info()
+
+        greetings = False
+        for field in KrogerHelper.survey_mandatory_fields:
+            if field not in self.config['profile'] or self.config['profile'][field] == '':
+                if not greetings:
+                    self.console.print('[bold]We need some extra information in order to fill out the feedback form.[/bold]')
+                    greetings = True
+                inp = click.prompt(KrogerHelper.survey_field_labels[field])
+                self.config['profile'][field] = inp
+                self._write_config_file()
+
+    def _option_survey(self):
+        self._get_details_for_survey()
+        self.api.browser_options['headless'] = False
+        result = self.api.complete_survey()
+        self.api.browser_options['headless'] = True
 
     def _option_account_info(self):
         info = self.api.get_account_info()

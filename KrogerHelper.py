@@ -37,6 +37,13 @@ stores = {
     },
 }
 
+survey_mandatory_fields = ['first_name', 'last_name', 'email_address', 'loyalty_card_number', 'mobile_phone',
+                           'address_line1', 'city', 'state', 'zip']
+survey_field_labels = {'first_name': 'First Name', 'last_name': 'Last Name', 'email_address': 'Email Address',
+                       'loyalty_card_number': 'Loyalty Card Number', 'mobile_phone': 'Mobile Phone',
+                       'address_line1': 'Address Line 1', 'city': 'City', 'state': 'State (2 letters abbreviation)',
+                       'zip': 'Zip Code'}
+
 
 def process_purchases_summary(purchases):
     default_dict = {
