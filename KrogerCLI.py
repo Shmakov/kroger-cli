@@ -127,14 +127,18 @@ class KrogerCLI:
                 if not greetings:
                     self.console.print('[bold]We need some extra information in order to fill out the feedback form.[/bold]')
                     greetings = True
-                inp = click.prompt(KrogerHelper.survey_field_labels[field])
-                self.config['profile'][field] = inp
+                if field == 'age':
+                    inp = click.prompt(KrogerHelper.survey_field_labels[field], type=int)
+                else:
+                    inp = click.prompt(KrogerHelper.survey_field_labels[field])
+                self.config['profile'][field] = str(inp)
                 self._write_config_file()
 
     def _option_survey(self):
         self._get_details_for_survey()
         self.api.browser_options['headless'] = False
         result = self.api.complete_survey()
+        print(result)
         self.api.browser_options['headless'] = True
 
     def _option_account_info(self):

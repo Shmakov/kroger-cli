@@ -3,6 +3,7 @@ import json
 import KrogerCLI
 import re
 import datetime
+import KrogerHelper
 from Memoize import memoized
 from pyppeteer import launch
 
@@ -39,13 +40,7 @@ class KrogerAPI:
     def get_purchases_summary(self):
         return asyncio.run(self._get_purchases_summary())
 
-    async def _complete_survey(self):
-        signed_in = await self.sign_in_routine(redirect_url='/mypurchases', contains=['My Purchases'])
-        if not signed_in:
-            await self.destroy()
-            return None
-        self.cli.console.print('Loading `My Purchases` page (to retrieve the Feedback’s Entry ID)')
-
+    async def _retrieve_feedback_url(self):
         # Model overlay pop up (might not exist)
         # Need to click on it, as it prevents me from clicking on `Order Details` link
         try:
@@ -53,6 +48,7 @@ class KrogerAPI:
             await self.page.click('.ModalitySelectorDynamicTooltip--Overlay')
         except Exception:
             pass
+
         try:
             # `See Order Details` link
             await self.page.waitForSelector('.PurchaseCard-top-view-details-button', {'timeout': 10000})
@@ -64,9 +60,8 @@ class KrogerAPI:
         except Exception:
             link = 'https://www.' + self.cli.config['main']['domain'] + '/mypurchases'
             self.cli.console.print('[bold red]Couldn’t retrieve the latest purchase, please make sure it exists: '
-                                    '[link=' + link + ']' + link + '[/link][/bold red]')
-            await self.destroy()
-            return None
+                                   '[link=' + link + ']' + link + '[/link][/bold red]')
+            raise Exception
 
         try:
             match = re.search('Entry ID: (.*?) ', content)
@@ -79,8 +74,7 @@ class KrogerAPI:
         except Exception:
             self.cli.console.print('[bold red]Couldn’t retrieve Entry ID from the receipt, please make sure it exists: '
                                    '[link=' + self.page.url + ']' + self.page.url + '[/link][/bold red]')
-            await self.destroy()
-            return None
+            raise Exception
 
         entry = entry_id.split('-')
         hour = entry_time[0:2]
@@ -97,12 +91,45 @@ class KrogerAPI:
               f'Index_VisitDateDatePicker={month}%2f{day}%2f{year}&' \
               f'InputHour={hour}&InputMeridian={meridian}&InputMinute={minute}'
 
+        return url, full_date
+
+    async def _complete_survey(self):
+        # signed_in = await self.sign_in_routine(redirect_url='/mypurchases', contains=['My Purchases'])
+        # if not signed_in:
+        #     await self.destroy()
+        #     return None
+        # self.cli.console.print('Loading `My Purchases` page (to retrieve the Feedback’s Entry ID)')
+
+        # try:
+        #     url, survey_date = self._retrieve_feedback_url()
+        # except Exception:
+        #     await self.destroy()
+        #     return None
+
+        await self.init()
+        url = 'https://www.krogerstoresfeedback.com/Index.aspx?CN1=703&CN2=264&CN3=98&CN4=4&CN5=500&CN6=598&Index_VisitDateDatePicker=05%2f22%2f2020&InputHour=04&InputMeridian=PM&InputMinute=40'
+        survey_date = '05/22/2020'
+
         await self.page.goto(url)
         await self.page.waitForSelector('#Index_VisitDateDatePicker', {'timeout': 10000})
         # We need to manually set the date, otherwise the validation fails
-        js = "() => {$('#Index_VisitDateDatePicker').datepicker('setDate', '" + full_date + "');}"
+        js = "() => {$('#Index_VisitDateDatePicker').datepicker('setDate', '" + survey_date + "');}"
         await self.page.evaluate(js)
         await self.page.click('#NextButton')
+
+        for i in range(35):
+            current_url = self.page.url
+            try:
+                await self.page.waitForSelector('#NextButton', {'timeout': 5000})
+            except Exception:
+                if 'Finish' in current_url:
+                    await self.destroy()
+                    return True
+            await self.page.evaluate(KrogerHelper.get_survey_injection_js(self.cli.config))
+            await self.page.click('#NextButton')
+
+        await self.destroy()
+        return False
 
     async def _get_account_info(self):
         signed_in = await self.sign_in_routine()
