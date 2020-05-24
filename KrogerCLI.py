@@ -136,10 +136,12 @@ class KrogerCLI:
 
     def _option_survey(self):
         self._get_details_for_survey()
-        self.api.browser_options['headless'] = False
+
         result = self.api.complete_survey()
-        print(result)
-        self.api.browser_options['headless'] = True
+        if result == True:
+            self.console.print('[bold]The feedback form has been completed successfully![/bold]')
+        else:
+            self.console.print('[bold red]Couldn\'t complete the feedback form :([/bold red]')
 
     def _option_account_info(self):
         info = self.api.get_account_info()

@@ -23,7 +23,12 @@ class KrogerAPI:
         self.cli = cli
 
     def complete_survey(self):
-        return asyncio.run(self._complete_survey())
+        # Cannot use headless mode here for some reason (sign-in cookie doesn't stick)
+        self.browser_options['headless'] = False
+        res = asyncio.run(self._complete_survey())
+        self.browser_options['headless'] = True
+
+        return res
 
     @memoized
     def get_account_info(self):
@@ -41,6 +46,8 @@ class KrogerAPI:
         return asyncio.run(self._get_purchases_summary())
 
     async def _retrieve_feedback_url(self):
+        self.cli.console.print('Loading `My Purchases` page (to retrieve the Feedback’s Entry ID)')
+
         # Model overlay pop up (might not exist)
         # Need to click on it, as it prevents me from clicking on `Order Details` link
         try:
@@ -94,21 +101,16 @@ class KrogerAPI:
         return url, full_date
 
     async def _complete_survey(self):
-        # signed_in = await self.sign_in_routine(redirect_url='/mypurchases', contains=['My Purchases'])
-        # if not signed_in:
-        #     await self.destroy()
-        #     return None
-        # self.cli.console.print('Loading `My Purchases` page (to retrieve the Feedback’s Entry ID)')
+        signed_in = await self.sign_in_routine(redirect_url='/mypurchases', contains=['My Purchases'])
+        if not signed_in:
+            await self.destroy()
+            return None
 
-        # try:
-        #     url, survey_date = self._retrieve_feedback_url()
-        # except Exception:
-        #     await self.destroy()
-        #     return None
-
-        await self.init()
-        url = 'https://www.krogerstoresfeedback.com/Index.aspx?CN1=703&CN2=264&CN3=98&CN4=4&CN5=500&CN6=598&Index_VisitDateDatePicker=05%2f22%2f2020&InputHour=04&InputMeridian=PM&InputMinute=40'
-        survey_date = '05/22/2020'
+        try:
+            url, survey_date = await self._retrieve_feedback_url()
+        except Exception:
+            await self.destroy()
+            return None
 
         await self.page.goto(url)
         await self.page.waitForSelector('#Index_VisitDateDatePicker', {'timeout': 10000})
