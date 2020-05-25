@@ -11,7 +11,9 @@ from pyppeteer import launch
 class KrogerAPI:
     browser_options = {
         'headless': True,
-        'args': ['--blink-settings=imagesEnabled=false']  # Disable images for hopefully faster load-time
+        'userDataDir': '.user-data',
+        'args': ['--blink-settings=imagesEnabled=false',  # Disable images for hopefully faster load-time
+                 '--no-sandbox']
     }
     headers = {
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
@@ -220,6 +222,7 @@ class KrogerAPI:
         await self.page.setViewport({'width': 700, 'height': 0})
 
     async def destroy(self):
+        await self.page.close()
         await self.browser.close()
 
     async def sign_in_routine(self, redirect_url='/account/update', contains=None):
@@ -248,7 +251,9 @@ class KrogerAPI:
         if not self.browser_options['headless']:
             timeout = 60000
         await self.page.goto('https://www.' + self.cli.config['main']['domain'] + '/signin?redirectUrl=' + redirect_url)
+        await self.page.click('#SignIn-emailInput', {'clickCount': 3})  # Select all in the field
         await self.page.type('#SignIn-emailInput', self.cli.username)
+        await self.page.click('#SignIn-passwordInput', {'clickCount': 3})
         await self.page.type('#SignIn-passwordInput', self.cli.password)
         await self.page.keyboard.press('Enter')
         try:

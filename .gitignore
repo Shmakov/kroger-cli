@@ -2,6 +2,7 @@
 venv
 build
 dist
+.user-data
 *.pyc
 *.spec
 *.pkl
