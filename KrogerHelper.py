@@ -125,7 +125,10 @@ def get_survey_injection_js(config):
     first_name = config['profile']['first_name']
     last_name = config['profile']['last_name']
     address_line1 = config['profile']['address_line1']
-    address_line2 = config['profile']['address_line2']
+    if 'address_line2' in config['profile']:
+        address_line2 = config['profile']['address_line2']
+    else:
+        address_line2 = ''
     city = config['profile']['city']
     zip = config['profile']['zip']
     mobile_phone = config['profile']['mobile_phone']
