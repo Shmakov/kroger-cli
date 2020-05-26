@@ -13,13 +13,22 @@ At this moment the application can:
 * [Display Purchases Summary](#purchases-summary) (number of store visits and dollars spent)
 * [Retrieve Points Balance](#fuel-points-balance)
 
-#### TODO
+The script works on kroger.com and other Kroger-owned grocery stores (Ralphs, Fry's, Fred Meyer, Dillons, Food 4 Less, [etc](https://en.wikipedia.org/wiki/Kroger#Chains)).
 
-* Command Line Arguments, to allow something like that: `kroger-cli --clip-digital-coupons`
+Install/Download
+----------------
 
-#### Side Notes
+### Windows
 
-The initial plan was to use the `requests` package, however I couldn't sign in to the Kroger's website using it. Possibly had to do with csrf token validation. Because of that I had to use `pyppeteer`, which is a python's port of `Puppeteer` (Headless Chrome).
+You can download the latest version from the GitHub's [releases tab](https://github.com/Shmakov/kroger-cli/releases).
+
+### Linux
+
+* Clone the repository: `git clone git@github.com:Shmakov/kroger-cli.git && cd ./kroger-cli`
+* Creating virtual environment: `python3.8 -m venv ./venv` (you might need to install `sudo apt-get install python3.8-venv`)
+* And activate it: `source venv/bin/activate`
+* Install the requirements: `pip install -r requirements.txt`
+* And you should be able to launch the project: `python main.py`
 
 Screenshots
 -----------
@@ -43,3 +52,14 @@ Screenshots
 ### Complete Kroger's Feedback Form
 
 [Watch](images/Kroger-Survey.gif)
+
+Side Notes
+----------
+
+The initial plan was to use plain HTTP (and `requests` package), however I couldn't sign in to the Kroger's website using it. Possibly had to do with csrf token validation and/or JavaScript-based protection. Because of that I had to use `pyppeteer`, which is a python's port of `Puppeteer` (Headless Chrome).
+
+### TODO
+
+* Command Line Arguments, to allow something like that: `kroger-cli --clip-digital-coupons`
+* Purchased items (receipt data) Excel export, which could be useful for budgeting/categorization/filtering
+* Notification on when certain items go on sale
