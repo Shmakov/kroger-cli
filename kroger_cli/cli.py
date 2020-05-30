@@ -2,18 +2,17 @@ import configparser
 import os
 import click
 import time
-import KrogerHelper
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich import box
-from KrogerAPI import *
+from kroger_cli.api import KrogerAPI
+from kroger_cli import helper
 
 
 class KrogerCLI:
-    config_file = 'config.ini'
-
-    def __init__(self):
+    def __init__(self, config_file='config.ini'):
+        self.config_file = config_file
         self.config = configparser.ConfigParser()
         self.username = None
         self.password = None
@@ -44,13 +43,13 @@ class KrogerCLI:
         if self.config['main']['username'] != '':
             return
 
-        for store_key in KrogerHelper.stores:
-            store = KrogerHelper.stores[store_key]
+        for store_key in helper.stores:
+            store = helper.stores[store_key]
             self.console.print('[bold]' + str(store_key) + '[/bold] - ' + store['label'] + ' (' + store['domain'] + ')')
 
         selected_store = click.prompt('Please select preferred store', type=int, default=1)
-        if selected_store in KrogerHelper.stores:
-            self.config['main']['domain'] = KrogerHelper.stores[selected_store]['domain']
+        if selected_store in helper.stores:
+            self.config['main']['domain'] = helper.stores[selected_store]['domain']
             self._write_config_file()
         else:
             self.console.print('[bold red]Incorrect entry, please try again.[/bold red]')
@@ -122,15 +121,15 @@ class KrogerCLI:
             self._option_account_info()
 
         greetings = False
-        for field in KrogerHelper.survey_mandatory_fields:
+        for field in helper.survey_mandatory_fields:
             if field not in self.config['profile'] or self.config['profile'][field] == '':
                 if not greetings:
                     self.console.print('[bold]We need some extra information in order to fill out the feedback form.[/bold]')
                     greetings = True
                 if field == 'age':
-                    inp = click.prompt(KrogerHelper.survey_field_labels[field], type=int)
+                    inp = click.prompt(helper.survey_field_labels[field], type=int)
                 else:
-                    inp = click.prompt(KrogerHelper.survey_field_labels[field])
+                    inp = click.prompt(helper.survey_field_labels[field])
                 self.config['profile'][field] = str(inp)
                 self._write_config_file()
 
@@ -148,7 +147,7 @@ class KrogerCLI:
         if info is None:
             self.console.print('[bold red]Couldn\'t retrieve the account info.[/bold red]')
         else:
-            self.config = KrogerHelper.map_account_info(self.config, info)
+            self.config = helper.map_account_info(self.config, info)
             self._write_config_file()
             self.console.print(self.config.items(section='profile'))
 
@@ -174,7 +173,7 @@ class KrogerCLI:
         if purchases is None:
             self.console.print('[bold red]Couldn\'t retrieve the purchases.[/bold red]')
         else:
-            data = KrogerHelper.process_purchases_summary(purchases)
+            data = helper.process_purchases_summary(purchases)
             if data is not None:
                 total = data['total']
                 table = Table(title='Purchases Summary (' + data['first_purchase']['transactionTime'][:10] + ' to ' + data['last_purchase']['transactionTime'][:10] + ')')

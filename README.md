@@ -28,7 +28,7 @@ You can download the latest version from the GitHub's [releases tab](https://git
 * Creating virtual environment: `python3.8 -m venv ./venv` (you might need to install `sudo apt-get install python3.8-venv`)
 * And activate it: `source venv/bin/activate`
 * Install the requirements: `pip install -r requirements.txt`
-* And you should be able to launch the project: `python main.py`
+* And you should be able to launch the project: `python -m kroger_cli`
 
 Screenshots
 -----------
