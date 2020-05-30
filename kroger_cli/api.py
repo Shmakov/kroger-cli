@@ -1,10 +1,10 @@
 import asyncio
 import json
-import KrogerCLI
 import re
 import datetime
-import KrogerHelper
-from Memoize import memoized
+import kroger_cli.cli
+from kroger_cli.memoize import memoized
+from kroger_cli import helper
 from pyppeteer import launch
 
 
@@ -21,8 +21,8 @@ class KrogerAPI:
         'Accept-Language': 'en-US,en;q=0.9'
     }
 
-    def __init__(self, cli: KrogerCLI):
-        self.cli = cli
+    def __init__(self, cli):
+        self.cli: kroger_cli.cli.KrogerCLI = cli
 
     def complete_survey(self):
         # Cannot use headless mode here for some reason (sign-in cookie doesn't stick)
@@ -129,7 +129,7 @@ class KrogerAPI:
                 if 'Finish' in current_url:
                     await self.destroy()
                     return True
-            await self.page.evaluate(KrogerHelper.get_survey_injection_js(self.cli.config))
+            await self.page.evaluate(helper.get_survey_injection_js(self.cli.config))
             await self.page.click('#NextButton')
 
         await self.destroy()

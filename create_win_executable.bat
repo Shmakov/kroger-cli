@@ -1,3 +1,5 @@
+REM Creates Windows executable using the pyinstaller
+
 call venv\scripts\activate
 
 pyinstaller -n kroger-cli ^
@@ -9,5 +11,5 @@ pyinstaller -n kroger-cli ^
             --hidden-import=packaging.requirements ^
             --hidden-import=packaging.specifiers ^
             --hidden-import=pkg_resources ^
-            --hidden-import pkg_resources.py2_warn ^
-            main.py
+            --hidden-import=pkg_resources.py2_warn ^
+            kroger_cli/__main__.py
