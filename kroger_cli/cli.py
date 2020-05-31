@@ -24,13 +24,6 @@ class KrogerCLI:
         self.init()
 
     def init(self):
-        if self.config['profile']['first_name'] != '':
-            self.console.print(Panel('[bold]Welcome Back, ' + self.config['profile']['first_name'] + '! :smiley:\n'
-                                     '[dark_blue]Kroger[/dark_blue] CLI[/bold]', box=box.ASCII))
-        else:
-            self.console.print(Panel('[bold]Welcome to [dark_blue]Kroger[/dark_blue] CLI[/bold] (unofficial command '
-                                     'line interface)', box=box.ASCII))
-
         self.prompt_store_selection()
 
         if self.username is None and self.config['main']['username'] != '':
@@ -65,6 +58,13 @@ class KrogerCLI:
         self._set_credentials(username, password)
 
     def prompt_options(self):
+        if self.config['profile']['first_name'] != '':
+            self.console.print(Panel('[bold]Welcome Back, ' + self.config['profile']['first_name'] + '! :smiley:\n'
+                                     '[dark_blue]Kroger[/dark_blue] CLI[/bold]', box=box.ASCII))
+        else:
+            self.console.print(Panel('[bold]Welcome to [dark_blue]Kroger[/dark_blue] CLI[/bold] (unofficial command '
+                                     'line interface)', box=box.ASCII))
+
         while True:
             self.console.print('[bold]1[/bold] - Display account info')
             self.console.print('[bold]2[/bold] - Clip all digital coupons')
@@ -77,15 +77,15 @@ class KrogerCLI:
             self.console.rule()
 
             if option == 1:
-                self._option_account_info()
+                self.option_account_info()
             elif option == 2:
-                self._option_clip_coupons()
+                self.option_clip_coupons()
             elif option == 3:
-                self._option_purchases_summary()
+                self.option_purchases_summary()
             elif option == 4:
-                self._option_points_balance()
+                self.option_points_balance()
             elif option == 5:
-                self._option_survey()
+                self.option_survey()
             elif option == 8:
                 self.prompt_credentials()
             elif option == 9:
@@ -118,7 +118,7 @@ class KrogerCLI:
         if self.config['profile']['first_name'] == '':
             self.console.print('[bold]We need to retrieve the account info in order to fill out the survey form. '
                                'Please wait..[/bold]')
-            self._option_account_info()
+            self.option_account_info()
 
         greetings = False
         for field in helper.survey_mandatory_fields:
@@ -133,7 +133,7 @@ class KrogerCLI:
                 self.config['profile'][field] = str(inp)
                 self._write_config_file()
 
-    def _option_survey(self):
+    def option_survey(self):
         self._get_details_for_survey()
 
         result = self.api.complete_survey()
@@ -142,7 +142,7 @@ class KrogerCLI:
         else:
             self.console.print('[bold red]Couldn\'t complete the feedback form :([/bold red]')
 
-    def _option_account_info(self):
+    def option_account_info(self):
         info = self.api.get_account_info()
         if info is None:
             self.console.print('[bold red]Couldn\'t retrieve the account info.[/bold red]')
@@ -151,7 +151,7 @@ class KrogerCLI:
             self._write_config_file()
             self.console.print(self.config.items(section='profile'))
 
-    def _option_points_balance(self):
+    def option_points_balance(self):
         balance = self.api.get_points_balance()
         if balance is None:
             self.console.print('[bold red]Couldn\'t retrieve the points balance.[/bold red]')
@@ -165,10 +165,10 @@ class KrogerCLI:
                 self.console.print(item['programDisplayInfo']['loyaltyProgramName'] + ': '
                                    '[bold]' + item['programBalance']['balanceDescription'] + '[/bold]')
 
-    def _option_clip_coupons(self):
+    def option_clip_coupons(self):
         self.api.clip_coupons()
 
-    def _option_purchases_summary(self):
+    def option_purchases_summary(self):
         purchases = self.api.get_purchases_summary()
         if purchases is None:
             self.console.print('[bold red]Couldn\'t retrieve the purchases.[/bold red]')

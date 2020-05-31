@@ -30,6 +30,13 @@ You can download the latest version from the GitHub's [releases tab](https://git
 * Install the requirements: `pip install -r requirements.txt`
 * And you should be able to launch the project: `python -m kroger_cli`
 
+CLI Commands
+------------
+
+The application support non-interactive mode by passing a name of a command. An example on how to complete Kroger's Survey: `kroger-cli survey`.
+
+Please use `kroger-cli --help` to see list of all available commands. Alternatively you can run the application without any command to launch the interactive mode (you can see the screenshot of it below).
+
 Screenshots
 -----------
 
@@ -60,6 +67,5 @@ The initial plan was to use plain HTTP (and `requests` package), however I could
 
 ### TODO
 
-* Command Line Arguments, to allow something like that: `kroger-cli --clip-digital-coupons`
 * Purchased items (receipt data) Excel export, which could be useful for budgeting/categorization/filtering
 * Notification on when certain items go on sale
