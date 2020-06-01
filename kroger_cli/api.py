@@ -27,25 +27,25 @@ class KrogerAPI:
     def complete_survey(self):
         # Cannot use headless mode here for some reason (sign-in cookie doesn't stick)
         self.browser_options['headless'] = False
-        res = asyncio.run(self._complete_survey())
+        res = asyncio.get_event_loop().run_until_complete(self._complete_survey())
         self.browser_options['headless'] = True
 
         return res
 
     @memoized
     def get_account_info(self):
-        return asyncio.run(self._get_account_info())
+        return asyncio.get_event_loop().run_until_complete(self._get_account_info())
 
     @memoized
     def get_points_balance(self):
-        return asyncio.run(self._get_points_balance())
+        return asyncio.get_event_loop().run_until_complete(self._get_points_balance())
 
     def clip_coupons(self):
-        return asyncio.run(self._clip_coupons())
+        return asyncio.get_event_loop().run_until_complete(self._clip_coupons())
 
     @memoized
     def get_purchases_summary(self):
-        return asyncio.run(self._get_purchases_summary())
+        return asyncio.get_event_loop().run_until_complete(self._get_purchases_summary())
 
     async def _retrieve_feedback_url(self):
         self.cli.console.print('Loading `My Purchases` page (to retrieve the Feedback’s Entry ID)')
