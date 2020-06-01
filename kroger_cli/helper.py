@@ -35,6 +35,26 @@ stores = {
         'label': 'Smith’s Food and Drug',
         'domain': 'smithsfoodanddrug.com'
     },
+    10: {
+        'label': 'King Soopers',
+        'domain': 'kingsoopers.com'
+    },
+    11: {
+        'label': 'Mariano’s Fresh Market',
+        'domain': 'marianos.com'
+    },
+    12: {
+        'label': 'QFC (Quality Food Centers)',
+        'domain': 'qfc.com'
+    },
+    13: {
+        'label': 'Metro Market',
+        'domain': 'metromarket.net'
+    },
+    14: {
+        'label': 'Pick ’n Save',
+        'domain': 'picknsave.com'
+    }
 }
 
 survey_mandatory_fields = ['first_name', 'last_name', 'email_address', 'loyalty_card_number', 'mobile_phone',
