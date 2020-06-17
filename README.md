@@ -3,13 +3,11 @@ Kroger CLI
 
 ![Display Purchases Summary](images/Purchases-Summary.gif)
 
-The idea of the project is to create a command line utility that can automate certain tasks on the Kroger's website.
-
-At this moment the application can:
+I got tired of manually applying the digital coupons while grocery shopping and decided to automate the process. While doing so I've added extra features, currently this python's cli can:
 
 * Display basic information from your account (name, address, rewards card number, etc)
 * [Complete the Kroger’s Survey on your behalf](images/Kroger-Survey.gif) (to earn 50 points and enter the sweepstake)
-* [Clip all Digital Coupons](#clip-digital-coupons) (first 150 coupons only, sorted by relevance)
+* [Clip Digital Coupons](#clip-digital-coupons) (first 150 coupons only, sorted by relevance)
 * [Display Purchases Summary](#purchases-summary) (number of store visits and dollars spent)
 * [Retrieve Points Balance](#fuel-points-balance)
 
