@@ -8,7 +8,7 @@ packaging==20.3
 pefile==2019.4.18
 pprintpp==0.4.0
 pyee==7.0.2
-Pygments==2.6.1
+Pygments==2.7.4
 git+git://github.com/pyinstaller/pyinstaller@develop#egg=pyinstaller
 pyparsing==2.4.7
 pyppeteer==0.2.2
