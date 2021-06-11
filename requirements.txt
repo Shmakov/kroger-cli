@@ -18,4 +18,4 @@ six==1.14.0
 tqdm==4.46.0
 typing-extensions==3.7.4.2
 urllib3==1.25.9
-websockets==8.1
+websockets==9.1
